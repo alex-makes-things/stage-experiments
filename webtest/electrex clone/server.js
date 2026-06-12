@@ -3,12 +3,13 @@ const WebSocket = require("ws");
 const net = require('net');
 const { send } = require("process");
 
-const client = new ModbusRTU();
+var client = new ModbusRTU();
 client.setTimeout(10000);
 const wss = new WebSocket.Server({ port: 8080 });
 var currentAddress = "";
 var currentId = 0;
 var currentCheckbox = false;
+var failedConnectionAttempts = 0;
 
 const registerToCell = new Map([
     [200, "thd-uln-l1"],
@@ -38,8 +39,8 @@ const registerToCell = new Map([
     [248, "q-l2"],
     [250, "q-l3"],
     [252, "s-l1"],
-    [254, "s-l1"],
-    [256, "s-l1"],
+    [254, "s-l2"],
+    [256, "s-l3"],
     [258, "pf-l1"],
     [260, "pf-l2"],
     [262, "pf-l3"],
@@ -53,7 +54,7 @@ const registerToCell = new Map([
     [278, "q-sum"],
     [280, "s-sum"],
     [282, "pf-sum"]
-])
+]);
 
 
 async function sendTableVals(ws, address, device_id) {
@@ -70,11 +71,20 @@ async function sendTableVals(ws, address, device_id) {
                 offset += 4;
             }
             ws.send(JSON.stringify(values));
+            failedConnectionAttempts = 0;
         }
-    else
+    else if(failedConnectionAttempts < 5)
         {
-            console.log("Port not open");
+            console.log("Port not open, retrying");
+            client = new ModbusRTU();
+            await client.connectTCP(address, { port: 502 });
+            await client.setID(device_id);
+            failedConnectionAttempts++;
+            await sendTableVals(ws, address, device_id);
         }
+    else{
+        console.log("Couldn't re-establish Modbus connection");
+    }
 }
 
 async function autoUpdate(ws){
@@ -96,7 +106,7 @@ ws.on("message", async message => {
         if(address == "CHECKBOX"){
             currentCheckbox = device_id;
             if(currentAddress != ""){
-                autoUpdate(ws, address, device_id);
+                await autoUpdate(ws, address, device_id);
             }
             return;
         }
@@ -107,17 +117,17 @@ ws.on("message", async message => {
             return;
         }else
         {
-            if(currentAddress != address || currentId != device_id){
+            if(currentAddress != address || currentId != device_id)
+            {
                 await client.connectTCP(address, { port: 502 });
                 await client.setID(device_id);
             }
-            
             await sendTableVals(ws, address, device_id);
-            
         }
     } catch (err) {
+        currentAddress = "";
         ws.send("CONNECTIONERROR");
-        console.log(err)
+        console.log(err);
     }
 });
 });

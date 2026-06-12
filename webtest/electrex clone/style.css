@@ -58,16 +58,19 @@
 }
 
 /* ── Base ── */
-html { font-size: 15px; }
+html { font-size: 15px; margin: 0; padding: 0; height: 100%;}
 
 body {
   background: var(--bg-page);
   color: var(--text-cell);
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  min-height: 100vh;
+  min-height: 100%;
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   align-items: flex-start;
+  overflow-x:scroll;
+  row-gap: 0;
 }
 
 sub {
@@ -77,15 +80,34 @@ sub {
 
 /* ── Page wrapper ── */
 .page-wrap {
+
+  min-width: 0;
   width: 100%;
   max-width: 920px;
-  padding: 3rem 1.5rem 4rem;
+  padding: 0rem 3rem;
+}
+
+.chart-wrap {
+  flex: 1 1 360px;
+  min-width: 550px;
+  height: 500px;
+  max-height: 70vh;
+  padding: 1.5rem 1.5rem 1.5rem 0;
+  position: relative;   /* richiesto da Chart.js */
+}
+
+#myChart {
+  /* rimuovi tutto il contenuto precedente, lascia solo: */
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* ── Header ── */
 .page-header {
+  flex-basis: 100%;   /* occupa tutta la riga */
   text-align: center;
-  margin-bottom: 2.8rem;
+  padding-top: 3rem;
+  padding-bottom: 1.5rem;
 }
 
 .title-eyebrow {
@@ -100,7 +122,7 @@ sub {
 
 .main-title {
   font-family: 'Orbitron', monospace;
-  font-size: clamp(1.75rem, 5.5vw, 3.2rem);
+  font-size: clamp(1.8rem, 6vw, 4rem);
   font-weight: 800;
   letter-spacing: 0.1em;
   color: var(--text-header);
@@ -190,7 +212,7 @@ sub {
 .controls-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   gap: 1rem 1.5rem;
 }
 
@@ -250,11 +272,16 @@ sub {
 /* ── Actions group ── */
 .actions-group {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.actions-group .actions-top {
+  display: flex;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
-  margin-left: auto;
-  padding-bottom: 1px;
 }
 
 /* ── Read button ── */
@@ -435,3 +462,23 @@ td.cell-empty {
   .actions-group { margin-left: 0; justify-content: flex-start; }
   .table-wrap    { border-radius: var(--radius-md); }
 }
+
+
+.btn-reset {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #3d1212;
+  border: 0.5px solid #7a2020;
+  border-radius: var(--radius-md);
+  color: #e08080;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 7px 18px 7px 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  white-space: nowrap
+}
+
+.btn-reset:hover  { background: #4d1818; border-color: #a03030; }
+.btn-reset:active { background: #301010; transform: scale(0.97); }
