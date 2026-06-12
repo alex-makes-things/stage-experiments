@@ -9,6 +9,7 @@ const tableDataCells = document.getElementsByClassName("table-data-cell");
 const resetBtn = document.getElementById("btn-reset");
 
 var lastSentIp = "";
+var lastSentId = 0;
 var lastRequestTime = 0;
 var lastRequestSuccessful = true;
 
@@ -56,6 +57,20 @@ const tableIds = [
     "s-sum",
     "pf-sum"]
 
+const kiloIds = [
+    "p-l1",
+    "p-l2",
+    "p-l3",
+    "q-l1",
+    "q-l2",
+    "q-l3",
+    "s-l1",
+    "s-l2",
+    "s-l3",
+    "p-sum",
+    "q-sum",
+    "s-sum"
+]
 
 const graphLabels = [
     "THD U_LN L1 [%]",
@@ -239,16 +254,16 @@ function getCurrentTimeString() {
 }
 
 ws.onopen = () => {
-        console.log("Connected to WebSocket");
+        console.log("Connected to Server");
     };
 
 
 ws.onmessage = event => {
-        console.log("Received:", event.data);
    
         if(event.data == "INVALIDIP" || event.data == "CONNECTIONERROR"){
-            addressInput.style.border = "0.5px solid red";
-            if(event.data == "CONNECTIONERROR"){
+            console.log("Received:", event.data);
+            addressInput.style.border = "0.5px solid red"; 
+            if(event.data == "CONNECTIONERROR"){ //Attempt to re-establish connection with server although unnecessary because the server crashes internally
                 ws.close();
                 ws = new WebSocket("ws://localhost:8080");
             }
@@ -258,24 +273,27 @@ ws.onmessage = event => {
             let i = 0;
             addressInput.style.border = "0.5px solid var(--border-input)";
 
-            dataChart.data.labels.push(getCurrentTimeString());
+            dataChart.data.labels.push(getCurrentTimeString()); //Update graph X axis
             
             const values = JSON.parse(event.data);
             for(const cell of values){
                 const obj = document.getElementById(cell[0]);
-                const roundedVal = parseFloat(cell[1]).toFixed(2);
+
+                //Apply k coefficients to the cells that require it
+                const roundedVal = (kiloIds.includes(cell[0])) ? (parseFloat(cell[1])/1000).toFixed(2) : parseFloat(cell[1]).toFixed(2);
                 obj.textContent = roundedVal;
-                dataChart.data.datasets[i].data.push(roundedVal);
+                dataChart.data.datasets[i].data.push(roundedVal); //Update graph Y axis
                 i++;
             }
 
-            dataChart.update();
+            dataChart.update(); //Render the updated graph
             lastRequestSuccessful = true;
         }
     };
 
+//Notify the server of a checkbox change
 autoCheckbox.addEventListener("click", function(){
-    if(Date.now() - lastRequestTime >= 600){
+    if(Date.now() - lastRequestTime >= 600){ //Limit the frequency of requests to avoid timeout
         if(ws.readyState == ws.OPEN){
             ws.send(JSON.stringify({address: "CHECKBOX", device_id: autoCheckbox.checked}));
             console.log("Sent checkbox event");
@@ -284,19 +302,22 @@ autoCheckbox.addEventListener("click", function(){
     }
 })
 
+//Request register values from device
 button.addEventListener("click", function(){
-    if(lastRequestSuccessful || lastSentIp != addressInput.value){
-        if(Date.now() - lastRequestTime >= 600){
+    if(lastRequestSuccessful || lastSentIp != addressInput.value || lastSentId != deviceInput.value){ //Only send request if success is possible
+        if(Date.now() - lastRequestTime >= 600){ //Limit the frequency of requests to avoid timeout
             if(ws.readyState == ws.OPEN){
                 ws.send(JSON.stringify({address: addressInput.value, device_id: deviceInput.value}));
                 console.log("Sent Modbus request.");
                 lastSentIp = addressInput.value;
+                lastSentId = deviceInput.value;
             }
             lastRequestTime = Date.now();
         }
     }
 })
 
+//Reset graph data
 resetBtn.addEventListener("click", function(){
     dataChart.data.labels = [];
     for(dataset of dataChart.data.datasets){

@@ -5,7 +5,7 @@ const { send } = require("process");
 
 var client = new ModbusRTU();
 client.setTimeout(10000);
-const wss = new WebSocket.Server({ port: 8080 });
+var wss = new WebSocket.Server({ port: 8080 });
 var currentAddress = "";
 var currentId = 0;
 var currentCheckbox = false;
@@ -62,7 +62,7 @@ async function sendTableVals(ws, address, device_id) {
         {
             currentAddress = address;
             currentId = device_id;
-            const data = await client.readInputRegisters(200, 84);
+            const data = await client.readInputRegisters(200, 84); //Read all necessary registers at once
             let offset = 0;
             let values = [];
             for(let i = 0; i < 42; i++){
@@ -71,9 +71,10 @@ async function sendTableVals(ws, address, device_id) {
                 offset += 4;
             }
             ws.send(JSON.stringify(values));
-            failedConnectionAttempts = 0;
+            failedConnectionAttempts = 0; //Successful request, thus the consecutive failed connection counter is reset
         }
-    else if(failedConnectionAttempts < 5)
+        //Reattempt connection 4 times before giving up
+    else if(failedConnectionAttempts < 5) //This makes sure data is still provided after being afk
         {
             console.log("Port not open, retrying");
             client = new ModbusRTU();
@@ -90,44 +91,50 @@ async function sendTableVals(ws, address, device_id) {
 async function autoUpdate(ws){
     if(currentCheckbox){
         await sendTableVals(ws, currentAddress, currentId);
-        await setTimeout(autoUpdate, 1000, ws, currentAddress, currentId);
+        await setTimeout(autoUpdate, 1000, ws, currentAddress, currentId);  //Periodic recursion
     }
 }
 
-wss.on("connection", ws => {
-    console.log("Browser connected");
-
+wss.on("connection", async ws => {
+    console.log("Client connected");
+    //Reset memory in case of browser refresh
+    currentAddress = "";
+    currentId = 0; 
+    currentCheckbox = false;
 
 ws.on("message", async message => {
-
+    console.log("Message received");
+    const { address, device_id } = JSON.parse(message);
     try 
     {
-        const { address, device_id } = JSON.parse(message);
-        if(address == "CHECKBOX"){
+        if(address == "CHECKBOX"){ //If message is a checkbox event, begin recursive modbus calls
             currentCheckbox = device_id;
             if(currentAddress != ""){
                 await autoUpdate(ws, address, device_id);
             }
             return;
         }
-        if(net.isIP(address)==0)
+        if(net.isIP(address)==0) //Check if received address is in valid ip notation
         {
             console.log(address);
             ws.send("INVALIDIP");
             return;
         }else
         {
-            if(currentAddress != address || currentId != device_id)
+            if(currentAddress != address || currentId != device_id) //Avoid overloading the modbus connection by removing redundat reconnection with the same credentials
             {
                 await client.connectTCP(address, { port: 502 });
                 await client.setID(device_id);
             }
             await sendTableVals(ws, address, device_id);
         }
+        //This catch block kills the server completely (TO BE FIXED)
     } catch (err) {
         currentAddress = "";
+        currentId = 0;
         ws.send("CONNECTIONERROR");
         console.log(err);
+        return;
     }
 });
 });
