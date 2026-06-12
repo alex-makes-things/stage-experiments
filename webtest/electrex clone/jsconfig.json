@@ -1,0 +1,11 @@
+{  
+  "compilerOptions": {  
+    "module": "node16",    // Use CommonJS module system (default for Node.js)  
+    "target": "ES6",         // Target ES6 syntax  
+    "lib": ["ES6"],          // Include ES6 library definitions  
+    "moduleResolution": "node16", // Use Node.js module resolution  
+    "types": ["node"]        // Explicitly include @types/node  
+  },  
+  "exclude": ["node_modules"], // Ignore node_modules  
+  "include": ["modbus-serial"]     // Include all files in src/ (adjust as needed)  
+}  

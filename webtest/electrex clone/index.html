@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Electrex RMS Reader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="page-wrap">
+
+    <!-- Hero title -->
+    <header class="page-header">
+      <h1 class="main-title">
+        ELECTREX&nbsp;<span class="title-accent">RMS</span>&nbsp;READER
+      </h1>
+      <div class="title-underline"></div>
+    </header>
+
+    <main>
+
+      <!-- Controls -->
+      <section class="controls-card" aria-label="Configurazione dispositivo">
+        <div class="controls-row">
+
+          <div class="field-group">
+            <label class="field-label" for="ip-input">Indirizzo IP</label>
+            <div class="input-wrap">
+              <svg class="input-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="8" rx="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+              <input type="text" id="ip-input" class="text-input" placeholder="192.168.1.100" autocomplete="off" spellcheck="false" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="dev-input">ID Dispositivo</label>
+            <div class="input-wrap">
+              <svg class="input-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"></path>
+              </svg>
+              <input type="text" id="dev-input" class="text-input" placeholder="1" autocomplete="off" spellcheck="false" />
+            </div>
+          </div>
+
+          <div class="actions-group">
+            <button class="btn-read" id="btn-read" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              Leggi
+            </button>
+
+            <label class="checkbox-wrap" for="auto-chk">
+              <input type="checkbox" id="auto-chk" />
+              <span class="checkbox-box"></span>
+              <span class="checkbox-label">Aggiorna automaticamente</span>
+            </label>
+          </div>
+
+        </div>
+        <div class="controls-meta"><span id="last-update-text"></span></div>
+      </section>
+
+      <!-- Table -->
+      <section aria-label="Misurazioni elettriche">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="th-label" scope="col"></th>
+                <th scope="col">L <sub>1</sub></th>
+                <th scope="col">L <sub>2</sub></th>
+                <th scope="col">L <sub>3</sub></th>
+                <th class="th-sum" scope="col">&#x3A3;</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <!-- U L-N -->
+              <tr>
+                <td class="row-label" id="lbl-uln">U<sub>L-N</sub> <span class="unit">[V]</span></td>
+                <td id="uln-l1">0</td>
+                <td id="uln-l2">0</td>
+                <td id="uln-l3">0</td>
+                <td class="sum-cell" id="uln-sum">0</td>
+              </tr>
+
+              <!-- U L-L -->
+              <tr>
+                <td class="row-label" id="lbl-ull">U<sub>L-L</sub> <span class="unit">[V]</span></td>
+                <td id="ull-l1">0</td>
+                <td id="ull-l2">0</td>
+                <td id="ull-l3">0</td>
+                <td class="sum-cell" id="ull-sum">0</td>
+              </tr>
+
+              <!-- I -->
+              <tr>
+                <td class="row-label" id="lbl-i">I <span class="unit">[A]</span></td>
+                <td id="i-l1">0</td>
+                <td id="i-l2">0</td>
+                <td id="i-l3">0</td>
+                <td class="sum-cell" id="i-sum">0</td>
+              </tr>
+
+              <!-- THD U L-N -->
+              <tr>
+                <td class="row-label" id="lbl-thd-uln">THD U<sub>L-N</sub> <span class="unit">[%]</span></td>
+                <td id="thd-uln-l1">0</td>
+                <td id="thd-uln-l2">0</td>
+                <td id="thd-uln-l3">0</td>
+                <td class="sum-cell" id="thd-uln-sum">0</td>
+              </tr>
+
+              <!-- THD U L-L -->
+              <tr>
+                <td class="row-label" id="lbl-thd-ull">THD U<sub>L-L</sub> <span class="unit">[%]</span></td>
+                <td id="thd-ull-l1">0</td>
+                <td id="thd-ull-l2">0</td>
+                <td id="thd-ull-l3">0</td>
+                <td class="sum-cell" id="thd-ull-sum">0</td>
+              </tr>
+
+              <!-- THD I -->
+              <tr>
+                <td class="row-label" id="lbl-thd-i">THD I <span class="unit">[%]</span></td>
+                <td id="thd-i-l1">0</td>
+                <td id="thd-i-l2">0</td>
+                <td id="thd-i-l3">0</td>
+                <td class="sum-cell" id="thd-i-sum">0</td>
+              </tr>
+
+              <!-- PF -->
+              <tr>
+                <td class="row-label" id="lbl-pf">PF</td>
+                <td id="pf-l1">0</td>
+                <td id="pf-l2">0</td>
+                <td id="pf-l3">0</td>
+                <td class="sum-cell" id="pf-sum">0</td>
+              </tr>
+
+              <!-- P -->
+              <tr>
+                <td class="row-label" id="lbl-p">P<sub>+/-</sub> <span class="unit">[kW]</span></td>
+                <td id="p-l1">0</td>
+                <td id="p-l2">0</td>
+                <td id="p-l3">0</td>
+                <td class="sum-cell" id="p-sum">0</td>
+              </tr>
+
+              <!-- Q -->
+              <tr>
+                <td class="row-label" id="lbl-q">Q<sub>+/-</sub> <span class="unit">[kvar]</span></td>
+                <td id="q-l1">0</td>
+                <td id="q-l2">0</td>
+                <td id="q-l3">0</td>
+                <td class="sum-cell" id="q-sum">0</td>
+              </tr>
+
+              <!-- S -->
+              <tr>
+                <td class="row-label" id="lbl-s">S<sub>+/-</sub> <span class="unit">[kVA]</span></td>
+                <td id="s-l1">0</td>
+                <td id="s-l2">0</td>
+                <td id="s-l3">0</td>
+                <td class="sum-cell" id="s-sum">0</td>
+              </tr>
+
+              <!-- I N -->
+              <tr>
+                <td class="row-label" id="lbl-in">I<sub>N</sub> <span class="unit">[A]</span></td>
+                <td class="cell-empty" id="in-l1">—</td>
+                <td class="cell-empty" id="in-l2">—</td>
+                <td class="cell-empty" id="in-l3">—</td>
+                <td class="sum-cell" id="in-sum">0</td>
+              </tr>
+
+              <!-- f -->
+              <tr>
+                <td class="row-label" id="lbl-f">f <span class="unit">[Hz]</span></td>
+                <td class="cell-empty" id="f-l1">—</td>
+                <td class="cell-empty" id="f-l2">—</td>
+                <td class="cell-empty" id="f-l3">—</td>
+                <td class="sum-cell" id="f-sum">0</td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+<script src="client.js"></script>
+</body>
+</html>
